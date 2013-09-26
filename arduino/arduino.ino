@@ -39,7 +39,7 @@ void turn_R (char a,char b)             //Turn Right
 void setup(void) 
 { 
     int i;
-    for(i=6;i<=9;i++)
+    for(int i=6;i<=9;i++)
     pinMode(i, OUTPUT);  
     Serial.begin(19200);      //Set Baud Rate
 } 
