@@ -27,7 +27,26 @@
     if (i == LEFT) return encoders.YAxisReset();
     else return encoders.XAxisReset();
   }
+#elsif defined ARPI_ENCODERS
+  /* The Robogaia Mega Encoder shield */
+  #include "ArpiEncoders.h"
+
+  /* Create the encoder shield object */
+  ArpiEnvoders encoders = ArpiEnvoders();
+  
+  /* Wrap the encoder reading function */
+  long readEncoder(int i) {
+    if (i == LEFT) return encoders.GetCountL();
+    else return encoders.GetCountR();
+  }
+
+  /* Wrap the encoder reset function */
+  void resetEncoder(int i) {
+    if (i == LEFT) return encoders.ResetL();
+    else return encoders.ResetR();
+  }
 #else
+
   #error A encoder driver must be selected!
 #endif
 
