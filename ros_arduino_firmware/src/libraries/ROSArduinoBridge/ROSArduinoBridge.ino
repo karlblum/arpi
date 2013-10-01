@@ -1,63 +1,16 @@
-/*********************************************************************
- *  ROSArduinoBridge
- 
-    A set of simple serial commands to control a differential drive
-    robot and receive back sensor and odometry data. Default 
-    configuration assumes use of an Arduino Mega + Pololu motor
-    controller shield + Robogaia Mega Encoder shield.  Edit the
-    readEncoder() and setMotorSpeed() wrapper functions if using 
-    different motor controller or encoder method.
 
-    Created for the Pi Robot Project: http://www.pirobot.org
-    and the Home Brew Robotics Club (HBRC): http://hbrobotics.org
-    
-    Authors: Patrick Goebel, James Nugen
-
-    Inspired and modeled after the ArbotiX driver by Michael Ferguson
-    
-    Software License Agreement (BSD License)
-
-    Copyright (c) 2012, Patrick Goebel.
-    All rights reserved.
-
-    Redistribution and use in source and binary forms, with or without
-    modification, are permitted provided that the following conditions
-    are met:
-
-     * Redistributions of source code must retain the above copyright
-       notice, this list of conditions and the following disclaimer.
-     * Redistributions in binary form must reproduce the above
-       copyright notice, this list of conditions and the following
-       disclaimer in the documentation and/or other materials provided
-       with the distribution.
-
-    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-    "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-    FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-    COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-    INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-    BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-    LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-    CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-    LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-    ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- *  POSSIBILITY OF SUCH DAMAGE.
- *********************************************************************/
 
 #define USE_BASE      // Enable the base controller code
 //#undef USE_BASE     // Disable the base controller code
 
 /* Define the motor controller and encoder library you are using */
 #ifdef USE_BASE
-   /* The Pololu VNH5019 dual motor driver shield */
-   //#define POLOLU_VNH5019
 
-   /* The Pololu MC33926 dual motor driver shield */
-   //#define POLOLU_MC33926
-
-   /* The RoboGaia encoder shield */
-   //#define ROBOGAIA
+   /* Arpi motors */
+   #define ARPI_MOTORS
+   /* Arpi encoders */
+   //#define ARPI_ENCODERS
+   
 #endif
 
 #define USE_SERVOS  // Enable use of PWM servos as defined in servos.h
@@ -92,10 +45,10 @@
   #include "motor_driver.h"
 
   /* Encoder driver function definitions */
-  #include "encoder_driver.h"
+  //#include "encoder_driver.h"
 
   /* PID parameters and functions */
-  #include "diff_controller.h"
+  //#include "diff_controller.h"
 
   /* Run the PID loop at 30 times per second */
   #define PID_RATE           30     // Hz
@@ -179,7 +132,6 @@ int runCommand() {
   case PING:
     Serial.println(Ping(arg1));
     break;
-#ifdef USE_SERVOS
   case SERVO_WRITE:
     servos[arg1].write(arg2);
     Serial.println("OK");
@@ -187,43 +139,10 @@ int runCommand() {
   case SERVO_READ:
     Serial.println(servos[arg1].read());
     break;
-#endif
-    
-#ifdef USE_BASE
-  case READ_ENCODERS:
-    Serial.print(readEncoder(LEFT));
-    Serial.print(" ");
-    Serial.println(readEncoder(RIGHT));
-    break;
-   case RESET_ENCODERS:
-    resetEncoders();
-    resetPID();
-    Serial.println("OK");
-    break;
   case MOTOR_SPEEDS:
-    /* Reset the auto stop timer */
-    lastMotorCommand = millis();
-    if (arg1 == 0 && arg2 == 0) {
-      setMotorSpeeds(0, 0);
-      moving = 0;
-    }
-    else moving = 1;
-    leftPID.TargetTicksPerFrame = arg1;
-    rightPID.TargetTicksPerFrame = arg2;
+    setMotorSpeeds(arg1, arg2);
     Serial.println("OK"); 
     break;
-  case UPDATE_PID:
-    while ((str = strtok_r(p, ":", &p)) != '\0') {
-       pid_args[i] = atoi(str);
-       i++;
-    }
-    Kp = pid_args[0];
-    Kd = pid_args[1];
-    Ki = pid_args[2];
-    Ko = pid_args[3];
-    Serial.println("OK");
-    break;
-#endif
   default:
     Serial.println("Invalid Command");
     break;
@@ -234,10 +153,7 @@ int runCommand() {
 void setup() {
   Serial.begin(BAUDRATE);
 
-// Initialize the motor controller if used */
-#ifdef USE_BASE
-  initMotorController();
-  resetPID();
+initMotorController();
 #endif
 
 /* Attach servos if used */
@@ -293,21 +209,6 @@ void loop() {
       }
     }
   }
-  
-// If we are using base control, run a PID calculation at the appropriate intervals
-#ifdef USE_BASE
-  if (millis() > nextPID) {
-    updatePID();
-    nextPID += PID_INTERVAL;
-  }
-  
-  // Check to see if we have exceeded the auto-stop interval
-  if ((millis() - lastMotorCommand) > AUTO_STOP_INTERVAL) {;
-    setMotorSpeeds(0, 0);
-    moving = 0;
-  }
-
-#endif
 }
 
 
