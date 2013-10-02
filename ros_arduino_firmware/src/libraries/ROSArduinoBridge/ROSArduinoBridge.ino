@@ -22,11 +22,7 @@
 /* Maximum PWM signal */
 #define MAX_PWM        255
 
-#if defined(ARDUINO) && ARDUINO >= 100
 #include "Arduino.h"
-#else
-#include "WProgram.h"
-#endif
 
 /* Include definition of serial commands */
 #include "commands.h"
@@ -66,6 +62,10 @@
 #endif
 
 /* Variable initialization */
+
+// Encoder values
+long coder[2] = {0,0};
+
 
 // A pair of varibles to help parse serial commands (thanks Fergs)
 int arg = 0;
@@ -143,18 +143,25 @@ int runCommand() {
     setMotorSpeeds(arg1, arg2);
     Serial.println("OK"); 
     break;
+   case READ_ENCODERS:
+    Serial.print(readEncoder(LEFT));
+    Serial.print(" ");
+    Serial.println(readEncoder(RIGHT));
+    break;
   default:
     Serial.println("Invalid Command");
     break;
   }
 }
 
-/* Setup function--runs once at startup. */
+
 void setup() {
   Serial.begin(BAUDRATE);
 
 initMotorController();
-#endif
+attachInterrupt(LEFT, LwheelSpeed, CHANGE);
+attachInterrupt(RIGHT, RwheelSpeed, CHANGE); 
+
 
 /* Attach servos if used */
 #ifdef USE_SERVOS
@@ -209,6 +216,58 @@ void loop() {
       }
     }
   }
+}
+
+/////////////// ENCODER FUNCTIONS
+
+
+  long readEncoder(int i) {
+    if (i == LEFT) return GetCountL();
+    else return GetCountR();
+  }
+
+  /* Wrap the encoder reset function */
+  void resetEncoder(int i) {
+    if (i == LEFT) return ResetL();
+    else return ResetR();
+  }
+
+
+/* Wrap the encoder reset function */
+void resetEncoders() {
+  resetEncoder(LEFT);
+  resetEncoder(RIGHT);
+}
+
+void ResetR()
+{
+  coder[RIGHT] = 0;
+}
+
+unsigned long GetCountR()
+{
+  return coder[RIGHT];;
+}
+
+void ResetL()
+{
+  coder[LEFT] = 0;
+}
+
+unsigned long GetCountL()
+{
+   return coder[LEFT];
+}
+
+void LwheelSpeed()
+{
+  coder[LEFT] ++;  //count the left wheel encoder interrupts
+}
+ 
+ 
+void RwheelSpeed()
+{
+  coder[RIGHT] ++; //count the right wheel encoder interrupts
 }
 
 
