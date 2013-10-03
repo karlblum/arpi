@@ -1,21 +1,3 @@
-
-
-#define USE_BASE      // Enable the base controller code
-//#undef USE_BASE     // Disable the base controller code
-
-/* Define the motor controller and encoder library you are using */
-#ifdef USE_BASE
-
-   /* Arpi motors */
-   #define ARPI_MOTORS
-   /* Arpi encoders */
-   //#define ARPI_ENCODERS
-   
-#endif
-
-#define USE_SERVOS  // Enable use of PWM servos as defined in servos.h
-//#undef USE_SERVOS     // Disable use of PWM servos
-
 /* Serial port baud rate */
 #define BAUDRATE     57600
 
@@ -30,41 +12,36 @@
 /* Sensor functions */
 #include "sensors.h"
 
-/* Include servo support if required */
-#ifdef USE_SERVOS
-   #include <Servo.h>
-   #include "servos.h"
-#endif
+/* Include servo support */
+#include <Servo.h>
+#include "servos.h"
 
-#ifdef USE_BASE
-  /* Motor driver function definitions */
-  #include "motor_driver.h"
+/* Motor driver function definitions */
+#include "motor_driver.h"
 
-  /* Encoder driver function definitions */
-  //#include "encoder_driver.h"
+/* Encoder driver function definitions */
+#include "encoder_driver.h"
 
-  /* PID parameters and functions */
-  //#include "diff_controller.h"
+/* PID parameters and functions */
+#include "diff_controller.h"
 
-  /* Run the PID loop at 30 times per second */
-  #define PID_RATE           30     // Hz
+/* Run the PID loop at 30 times per second */
+#define PID_RATE           10     // Hz
 
-  /* Convert the rate into an interval */
-  const int PID_INTERVAL = 1000 / PID_RATE;
-  
-  /* Track the next time we make a PID calculation */
-  unsigned long nextPID = PID_INTERVAL;
+/* Convert the rate into an interval */
+const int PID_INTERVAL = 1000 / PID_RATE;
 
-  /* Stop the robot if it hasn't received a movement command
-   in this number of milliseconds */
-  #define AUTO_STOP_INTERVAL 2000
-  long lastMotorCommand = AUTO_STOP_INTERVAL;
-#endif
+/* Track the next time we make a PID calculation */
+unsigned long nextPID = PID_INTERVAL;
+
+/* Stop the robot if it hasn't received a movement command
+ in this number of milliseconds */
+#define AUTO_STOP_INTERVAL 2000
+long lastMotorCommand = AUTO_STOP_INTERVAL;
+
 
 /* Variable initialization */
 
-// Encoder values
-long coder[2] = {0,0};
 
 
 // A pair of varibles to help parse serial commands (thanks Fergs)
@@ -104,7 +81,7 @@ int runCommand() {
   int pid_args[4];
   arg1 = atoi(argv1);
   arg2 = atoi(argv2);
-  
+
   switch(cmd) {
   case GET_BAUDRATE:
     Serial.println(BAUDRATE);
@@ -140,13 +117,36 @@ int runCommand() {
     Serial.println(servos[arg1].read());
     break;
   case MOTOR_SPEEDS:
-    setMotorSpeeds(arg1, arg2);
+    /* Reset the auto stop timer */
+    lastMotorCommand = millis();
+    if (arg1 == 0 && arg2 == 0) {
+      setMotorSpeeds(0, 0);
+      moving = 0;
+    }
+    else moving = 1;
+    leftPID.TargetTicksPerFrame = arg1;
+    rightPID.TargetTicksPerFrame = arg2;
     Serial.println("OK"); 
     break;
-   case READ_ENCODERS:
+  case READ_ENCODERS:
     Serial.print(readEncoder(LEFT));
     Serial.print(" ");
     Serial.println(readEncoder(RIGHT));
+    break;
+  case RESET_ENCODERS:
+    resetEncoders();
+    Serial.println("OK");
+    break;
+  case UPDATE_PID:
+    while ((str = strtok_r(p, ":", &p)) != '\0') {
+       pid_args[i] = atoi(str);
+       i++;
+    }
+    Kp = pid_args[0];
+    Kd = pid_args[1];
+    Ki = pid_args[2];
+    Ko = pid_args[3];
+    Serial.println("OK");
     break;
   default:
     Serial.println("Invalid Command");
@@ -158,27 +158,24 @@ int runCommand() {
 void setup() {
   Serial.begin(BAUDRATE);
 
-initMotorController();
-attachInterrupt(LEFT, LwheelSpeed, CHANGE);
-attachInterrupt(RIGHT, RwheelSpeed, CHANGE); 
+  initMotorController();
+  resetPID();
+  initEncoders();
 
-
-/* Attach servos if used */
-#ifdef USE_SERVOS
+  /* Attach servos if used */
   int i;
   for (i = 0; i < N_SERVOS; i++) {
     servos[i].attach(servoPins[i]);
   }
-#endif
 }
 
 /* Enter the main loop.  Read and parse input from the serial port
-   and run any valid commands. Run a PID calculation at the target
-   interval and check for auto-stop conditions.
-*/
+ and run any valid commands. Run a PID calculation at the target
+ interval and check for auto-stop conditions.
+ */
 void loop() {
   while (Serial.available() > 0) {
-    
+
     // Read the next character
     chr = Serial.read();
 
@@ -216,62 +213,18 @@ void loop() {
       }
     }
   }
-}
-
-/////////////// ENCODER FUNCTIONS
-
-
-  long readEncoder(int i) {
-    if (i == LEFT) return GetCountL();
-    else return GetCountR();
+  
+  // Execute motor commands
+  if (millis() > nextPID) {
+    updatePID();
+    nextPID += PID_INTERVAL;
   }
-
-  /* Wrap the encoder reset function */
-  void resetEncoder(int i) {
-    if (i == LEFT) return ResetL();
-    else return ResetR();
+  
+  // Check to see if we have exceeded the auto-stop interval
+  if ((millis() - lastMotorCommand) > AUTO_STOP_INTERVAL) {;
+    setMotorSpeeds(0, 0);
+    moving = 0;
   }
-
-
-/* Wrap the encoder reset function */
-void resetEncoders() {
-  resetEncoder(LEFT);
-  resetEncoder(RIGHT);
 }
-
-void ResetR()
-{
-  coder[RIGHT] = 0;
-}
-
-unsigned long GetCountR()
-{
-  return coder[RIGHT];;
-}
-
-void ResetL()
-{
-  coder[LEFT] = 0;
-}
-
-unsigned long GetCountL()
-{
-   return coder[LEFT];
-}
-
-void LwheelSpeed()
-{
-  coder[LEFT] ++;  //count the left wheel encoder interrupts
-}
- 
- 
-void RwheelSpeed()
-{
-  coder[RIGHT] ++; //count the right wheel encoder interrupts
-}
-
-
-
-
 
 

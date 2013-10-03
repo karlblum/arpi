@@ -86,6 +86,7 @@ void doPID(SetPointInfo * p) {
   p->PrevEnc = p->Encoder;
 
   output += p->output;
+
   // Accumulate Integral error *or* Limit output.
   // Stop accumulating when output saturates
   if (output >= MAX_PWM)
@@ -97,9 +98,22 @@ void doPID(SetPointInfo * p) {
   * allow turning changes, see http://brettbeauregard.com/blog/2011/04/improving-the-beginner%E2%80%99s-pid-tuning-changes/
   */
     p->ITerm += Ki * Perror;
-
+  
   p->output = output;
   p->PrevInput = input;
+  
+  Serial.print("Target: ");
+  Serial.print(p->TargetTicksPerFrame);
+  Serial.print(" | Current: ");
+  Serial.print(input);
+  Serial.print("| Encoder: ");
+  Serial.print(p->Encoder);
+  Serial.print(" | PrevEnc: ");
+  Serial.print(p->PrevEnc);
+  Serial.print(" | Error: ");
+  Serial.print(Perror);
+  Serial.print(" | OutputPWM: ");
+  Serial.println(output);
 }
 
 /* Read the encoder values and call the PID routine */

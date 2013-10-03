@@ -1,6 +1,3 @@
-#ifndef ArpiMotors_h
-#define ArpiMotors_h
-
 #include <Arduino.h>
 
 class ArpiMotors
@@ -23,6 +20,4 @@ class ArpiMotors
     unsigned char _M2PWM;
 
 };
-
-#endif
 

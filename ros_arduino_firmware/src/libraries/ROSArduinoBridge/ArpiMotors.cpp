@@ -23,7 +23,7 @@ ArpiMotors::ArpiMotors(unsigned char M1DIR, unsigned char M1PWM, unsigned char M
 // Public Methods //////////////////////////////////////////////////////////////
 void ArpiMotors::init()
 {
-// Define pinMode for the pins
+  // Define pinMode for the pins
 
   pinMode(_M1DIR,OUTPUT);
   pinMode(_M1PWM,OUTPUT);
@@ -35,7 +35,7 @@ void ArpiMotors::init()
 void ArpiMotors::setM1Speed(int speed)
 {
   unsigned char reverse = 0;
-  
+
   if (speed < 0)
   {
     speed = -speed;  // Make speed a positive quantity
@@ -43,9 +43,9 @@ void ArpiMotors::setM1Speed(int speed)
   }
   if (speed > 255)  // Max PWM dutycycle
     speed = 255;
-    
+
   analogWrite(_M1PWM,speed);
-  
+
   if (reverse)
     digitalWrite(_M1DIR,HIGH);
   else
@@ -56,7 +56,7 @@ void ArpiMotors::setM1Speed(int speed)
 void ArpiMotors::setM2Speed(int speed)
 {
   unsigned char reverse = 0;
-  
+
   if (speed < 0)
   {
     speed = -speed;  // Make speed a positive quantity
@@ -64,9 +64,9 @@ void ArpiMotors::setM2Speed(int speed)
   }
   if (speed > 255)  // Max PWM dutycycle
     speed = 255;
-  
+
   analogWrite(_M2PWM,speed);  
-    
+
   if (reverse)
     digitalWrite(_M2DIR,HIGH);
   else
@@ -79,4 +79,5 @@ void ArpiMotors::setSpeeds(int m1Speed, int m2Speed)
   setM1Speed(m1Speed);
   setM2Speed(m2Speed);
 }
+
 
