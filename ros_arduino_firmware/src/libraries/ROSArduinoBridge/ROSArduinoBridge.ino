@@ -26,6 +26,7 @@
 #include "diff_controller.h"
 
 /* Run the PID loop at 30 times per second */
+// MAX Ticks per second is about 30 with current encoders!!!!
 #define PID_RATE           10     // Hz
 
 /* Convert the rate into an interval */
@@ -167,6 +168,16 @@ void setup() {
   for (i = 0; i < N_SERVOS; i++) {
     servos[i].attach(servoPins[i]);
   }
+  servos[0].write(0);
+  servos[1].write(90);
+  delay(1000);
+  servos[0].write(110);
+  servos[1].write(180);
+  delay(1000);
+  servos[1].write(0);
+  delay(1000);
+  servos[0].write(0);
+  servos[1].write(90);
 }
 
 /* Enter the main loop.  Read and parse input from the serial port
