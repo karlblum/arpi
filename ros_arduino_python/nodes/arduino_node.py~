@@ -20,7 +20,6 @@
 """
 
 import rospy
-import roslib; roslib.load_manifest('ros_arduino_python')
 from arduino_driver import Arduino
 from arduino_sensors import *
 from ros_arduino_msgs.srv import *
