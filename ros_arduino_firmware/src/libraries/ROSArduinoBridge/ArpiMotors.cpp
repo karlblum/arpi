@@ -1,30 +1,25 @@
 #include "ArpiMotors.h"
 
-// Constructors ////////////////////////////////////////////////////////////////
-
 ArpiMotors::ArpiMotors()
 {
-  //Pin map
-  _M1DIR = 4;
-  _M2DIR = 7;
-  _M1PWM = 5;
-  _M2PWM = 6;
+  _M1DIR = 4; // Motor 1 direction pin
+  _M2DIR = 7; // Motor 2 direction pin
+  _M1PWM = 5; // Motor 1 PWM pin
+  _M2PWM = 6; // Motor 2 PWM pin
 }
 
 ArpiMotors::ArpiMotors(unsigned char M1DIR, unsigned char M1PWM, unsigned char M2DIR, unsigned char M2PWM)
 {
-  //Pin map
   _M1DIR = M1DIR;
   _M2DIR = M2DIR;
   _M1PWM = M1PWM; 
   _M2PWM = M2PWM;
 }
 
-// Public Methods //////////////////////////////////////////////////////////////
+
+// Initialize motor pins
 void ArpiMotors::init()
 {
-  // Define pinMode for the pins
-
   pinMode(_M1DIR,OUTPUT);
   pinMode(_M1PWM,OUTPUT);
   pinMode(_M2DIR,OUTPUT);
@@ -32,6 +27,7 @@ void ArpiMotors::init()
 
 }
 
+// Set motor 1 speed in PWM value [-255,255]
 void ArpiMotors::setM1Speed(int speed)
 {
   unsigned char reverse = 0;
@@ -52,7 +48,7 @@ void ArpiMotors::setM1Speed(int speed)
     digitalWrite(_M1DIR,LOW);
 }
 
-// Set speed for motor 2, speed is a number betwenn -400 and 400
+// Set motor 2 speed in PWM value [-255,255]
 void ArpiMotors::setM2Speed(int speed)
 {
   unsigned char reverse = 0;
@@ -73,7 +69,7 @@ void ArpiMotors::setM2Speed(int speed)
     digitalWrite(_M2DIR,LOW);
 }
 
-// Set speed for motor 1 and 2
+// Set both motor speeds in PWM value [-255,255]
 void ArpiMotors::setSpeeds(int m1Speed, int m2Speed)
 {
   setM1Speed(m1Speed);

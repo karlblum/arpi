@@ -22,12 +22,18 @@
 /* Encoder driver function definitions */
 #include "encoder_driver.h"
 
-/* PID parameters and functions */
-#include "diff_controller.h"
+/* PID controller parameters */
+#include <PID_v1.h>
+unsigned char moving = 0;
+double SetpointL, SetpointR, InputL, OutputL, InputR, OutputR;
+PID myPIDL(&InputL, &OutputL, &SetpointL,4,100,1, DIRECT);
+PID myPIDR(&InputR, &OutputR, &SetpointR,4,100,1, DIRECT);
 
-/* Run the PID loop at 30 times per second */
-// MAX Ticks per second is about 30 with current encoders!!!!
-#define PID_RATE           10     // Hz
+long EncL, PrevEncL, EncR, PrevEncR; // encoder count, previous count
+
+/* Run the PID loop at 10 times per second */
+// MAX Ticks per second is about 30-50 with current encoders!!!!
+#define PID_RATE           10.0     // Hz
 
 /* Convert the rate into an interval */
 const int PID_INTERVAL = 1000 / PID_RATE;
@@ -125,8 +131,9 @@ int runCommand() {
       moving = 0;
     }
     else moving = 1;
-    leftPID.TargetTicksPerFrame = arg1;
-    rightPID.TargetTicksPerFrame = arg2;
+    //Set target encoder ticks per frame
+    SetpointL = arg1/PID_RATE; 
+    SetpointR = arg2/PID_RATE;
     Serial.println("OK"); 
     break;
   case READ_ENCODERS:
@@ -143,10 +150,10 @@ int runCommand() {
        pid_args[i] = atoi(str);
        i++;
     }
-    Kp = pid_args[0];
-    Kd = pid_args[1];
-    Ki = pid_args[2];
-    Ko = pid_args[3];
+    //Kp = pid_args[0];
+    //Kd = pid_args[1];
+    //Ki = pid_args[2];
+    //Ko = pid_args[3];
     Serial.println("OK");
     break;
   default:
@@ -160,7 +167,6 @@ void setup() {
   Serial.begin(BAUDRATE);
 
   initMotorController();
-  resetPID();
   initEncoders();
 
   /* Attach servos if used */
@@ -170,14 +176,11 @@ void setup() {
   }
   servos[0].write(0);
   servos[1].write(90);
-  delay(1000);
-  servos[0].write(110);
-  servos[1].write(180);
-  delay(1000);
-  servos[1].write(0);
-  delay(1000);
-  servos[0].write(0);
-  servos[1].write(90);
+  
+  myPIDL.SetMode(AUTOMATIC);
+  myPIDR.SetMode(AUTOMATIC);
+  myPIDL.SetOutputLimits(-255,255);
+  myPIDR.SetOutputLimits(-255,255);
 }
 
 /* Enter the main loop.  Read and parse input from the serial port
@@ -227,8 +230,25 @@ void loop() {
   
   // Execute motor commands
   if (millis() > nextPID) {
-    updatePID();
-    nextPID += PID_INTERVAL;
+    if (!moving){
+        SetpointL = 0.0;
+        OutputL = 0;
+        SetpointL = 0.0;
+        OutputL = 0;
+    } else {
+      EncL = readEncoder(LEFT);
+      EncR = readEncoder(RIGHT);
+      InputL = EncL - PrevEncL;
+      InputR = EncR - PrevEncR;
+      PrevEncL = EncL;
+      PrevEncR = EncR;
+      myPIDL.Compute();
+      myPIDR.Compute();
+      Serial.println(OutputL);
+      setMotorSpeeds(OutputR, OutputL);
+      nextPID += PID_INTERVAL;
+    }
+
   }
   
   // Check to see if we have exceeded the auto-stop interval

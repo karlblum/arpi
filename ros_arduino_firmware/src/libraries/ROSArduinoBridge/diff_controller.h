@@ -1,13 +1,5 @@
-/* Functions and type-defs for PID control.
-
-   Taken mostly from Mike Ferguson's ArbotiX code which lives at:
-   
-   http://vanadium-ros-pkg.googlecode.com/svn/trunk/arbotix/
-*/
-
-/* PID setpoint info For a Motor */
 typedef struct {
-  double TargetTicksPerFrame;    // target speed in ticks per frame
+  double SetpointTicks;    // target speed in ticks per frame
   long Encoder;                  // encoder count
   long PrevEnc;                  // last encoder count
 
@@ -49,7 +41,7 @@ unsigned char moving = 0; // is the base in motion?
 * when going from stop to moving, that's why we can init everything on zero.
 */
 void resetPID(){
-   leftPID.TargetTicksPerFrame = 0.0;
+   leftPID. = 0.0;
    leftPID.Encoder = readEncoder(0);
    leftPID.PrevEnc = leftPID.Encoder;
    leftPID.output = 0;
@@ -70,7 +62,6 @@ void doPID(SetPointInfo * p) {
   long output;
   int input;
 
-  //Perror = p->TargetTicksPerFrame - (p->Encoder - p->PrevEnc);
   input = p->Encoder - p->PrevEnc;
   Perror = p->TargetTicksPerFrame - input;
 
@@ -80,8 +71,7 @@ void doPID(SetPointInfo * p) {
   * see http://brettbeauregard.com/blog/2011/04/improving-the-beginner%E2%80%99s-pid-derivative-kick/
   * see http://brettbeauregard.com/blog/2011/04/improving-the-beginner%E2%80%99s-pid-tuning-changes/
   */
-  //output = (Kp * Perror + Kd * (Perror - p->PrevErr) + Ki * p->Ierror) / Ko;
-  // p->PrevErr = Perror;
+  
   output = (Kp * Perror - Kd * (input - p->PrevInput) + p->ITerm) / Ko;
   p->PrevEnc = p->Encoder;
 
@@ -91,8 +81,8 @@ void doPID(SetPointInfo * p) {
   // Stop accumulating when output saturates
   if (output >= MAX_PWM)
     output = MAX_PWM;
-  else if (output <= -MAX_PWM)
-    output = -MAX_PWM;
+  else if (output <= 0)
+    output = 0;
   else
   /*
   * allow turning changes, see http://brettbeauregard.com/blog/2011/04/improving-the-beginner%E2%80%99s-pid-tuning-changes/
