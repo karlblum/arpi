@@ -4,7 +4,8 @@ typedef struct {
   double PreviousInput;  
   double Output;
   double Encoder; 
-  double PreviousEncoder; 
+  double PreviousEncoder;
+  double f;
 }
 PidInfo;
 
@@ -22,6 +23,7 @@ void resetPID(){
    leftPID.SetpointTicks = 0;
    leftPID.Encoder = 0;
    leftPID.PreviousEncoder = 0;
+   leftPID.f = 1;
    
    rightPID.Input = 0;
    rightPID.PreviousInput = 0;
@@ -29,28 +31,49 @@ void resetPID(){
    rightPID.SetpointTicks = 0;
    rightPID.Encoder = 0;
    rightPID.PreviousEncoder = 0;
+   rightPID.f = 1;
+   Serial.println("PID RESET");
 }
 
-void doPID(PidInfo * p) {
-      p->Input = p->Encoder - p->PreviousEncoder;
-      myPIDL.Compute();
-      p->PreviousEncoder = p->Encoder;
-      p->PreviousInput = p->Input;
-}
 
 void updatePID() {
-    leftPID.Encoder = readEncoder(LEFT);
-    rightPID.Encoder = readEncoder(RIGHT);
+    leftPID.Encoder = readEncoder(0);
+    rightPID.Encoder = readEncoder(1);
   
   if (!moving){
     if (leftPID.PreviousInput != 0 || rightPID.PreviousInput != 0) resetPID();
     return;
   }
-
-  /* Compute PID update for each motor */
-  doPID(&rightPID);
-  doPID(&leftPID);
-
+    leftPID.Input = leftPID.Encoder - leftPID.PreviousEncoder;
+    myPIDL.Compute();
+    leftPID.PreviousEncoder = leftPID.Encoder;
+    leftPID.PreviousInput = leftPID.Input;
+    
+    Serial.print("LEFT Setpoint: ");
+    Serial.print(leftPID.SetpointTicks);
+    Serial.print(" | Encoder: ");
+    Serial.print(leftPID.Encoder);
+    Serial.print(" | Input: ");
+    Serial.print(leftPID.Input);
+    Serial.print(" | Output: ");
+    Serial.println(leftPID.Output);    
+    
+    rightPID.Input = rightPID.Encoder - rightPID.PreviousEncoder;
+    myPIDR.Compute();
+    rightPID.PreviousEncoder = rightPID.Encoder;
+    rightPID.PreviousInput = rightPID.Input;
+    
+    Serial.print("RIGHT Setpoint: ");
+    Serial.print(rightPID.SetpointTicks);
+    Serial.print(" | Encoder: ");
+    Serial.print(rightPID.Encoder);
+    Serial.print(" | Input: ");
+    Serial.print(rightPID.Input);
+    Serial.print(" | Output: ");
+    Serial.println(rightPID.Output);
+   
   /* Set the motor speeds accordingly */
-  setMotorSpeeds(leftPID.Output, rightPID.Output);
+  
+  setMotorSpeeds(rightPID.Output * rightPID.f, leftPID.Output * leftPID.f);
 }
+

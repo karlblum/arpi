@@ -124,8 +124,22 @@ int runCommand() {
     }
     else moving = 1;
     //Set target encoder ticks per frame
-    leftPID.SetpointTicks = arg1/PID_RATE; 
-    rightPID.SetpointTicks = arg2/PID_RATE;
+     if(arg1<0) {
+       leftPID.f = -1;    
+     }
+     else { 
+       leftPID.f = 1;
+     }
+     leftPID.SetpointTicks = arg1/PID_RATE * leftPID.f;
+   
+     if(arg2<0) {
+       rightPID.f = -1;
+     }
+     else { 
+       rightPID.f = 1; 
+     }
+     rightPID.SetpointTicks = arg2/PID_RATE * rightPID.f;
+     
     Serial.println("OK"); 
     break;
   case READ_ENCODERS:
@@ -225,7 +239,6 @@ void loop() {
     if (!moving){
         leftPID.SetpointTicks = 0.0;
         rightPID.SetpointTicks = 0.0;
-        resetPID();
     } else {
       updatePID();
       nextPID += PID_INTERVAL;
