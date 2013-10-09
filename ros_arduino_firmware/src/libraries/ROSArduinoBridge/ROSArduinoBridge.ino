@@ -24,12 +24,7 @@
 
 /* PID controller parameters */
 #include <PID_v1.h>
-unsigned char moving = 0;
-double SetpointL, SetpointR, InputL, OutputL, InputR, OutputR;
-PID myPIDL(&InputL, &OutputL, &SetpointL,4,100,1, DIRECT);
-PID myPIDR(&InputR, &OutputR, &SetpointR,4,100,1, DIRECT);
-
-long EncL, PrevEncL, EncR, PrevEncR; // encoder count, previous count
+#include "diff_controller.h"
 
 /* Run the PID loop at 10 times per second */
 // MAX Ticks per second is about 30-50 with current encoders!!!!
@@ -45,9 +40,6 @@ unsigned long nextPID = PID_INTERVAL;
  in this number of milliseconds */
 #define AUTO_STOP_INTERVAL 2000
 long lastMotorCommand = AUTO_STOP_INTERVAL;
-
-
-/* Variable initialization */
 
 
 
@@ -132,8 +124,8 @@ int runCommand() {
     }
     else moving = 1;
     //Set target encoder ticks per frame
-    SetpointL = arg1/PID_RATE; 
-    SetpointR = arg2/PID_RATE;
+    leftPID.SetpointTicks = arg1/PID_RATE; 
+    rightPID.SetpointTicks = arg2/PID_RATE;
     Serial.println("OK"); 
     break;
   case READ_ENCODERS:
@@ -231,24 +223,13 @@ void loop() {
   // Execute motor commands
   if (millis() > nextPID) {
     if (!moving){
-        SetpointL = 0.0;
-        OutputL = 0;
-        SetpointL = 0.0;
-        OutputL = 0;
+        leftPID.SetpointTicks = 0.0;
+        rightPID.SetpointTicks = 0.0;
+        resetPID();
     } else {
-      EncL = readEncoder(LEFT);
-      EncR = readEncoder(RIGHT);
-      InputL = EncL - PrevEncL;
-      InputR = EncR - PrevEncR;
-      PrevEncL = EncL;
-      PrevEncR = EncR;
-      myPIDL.Compute();
-      myPIDR.Compute();
-      Serial.println(OutputL);
-      setMotorSpeeds(OutputR, OutputL);
+      updatePID();
       nextPID += PID_INTERVAL;
-    }
-
+    } 
   }
   
   // Check to see if we have exceeded the auto-stop interval
