@@ -9,8 +9,8 @@ void initMotorController() {
 
 // Set one motor speed
 void setMotorSpeed(int i, int spd) {
-  if (i == LEFT) drive.setM1Speed(spd);
-  else drive.setM2Speed(spd);
+  if (i == LEFT) drive.setM2Speed(spd);
+  else drive.setM1Speed(spd);
 }
 
 // Set both motor speeds

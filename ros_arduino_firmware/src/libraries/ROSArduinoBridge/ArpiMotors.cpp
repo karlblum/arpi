@@ -8,7 +8,7 @@ ArpiMotors::ArpiMotors()
   _M2PWM = 6; // Motor 2 PWM pin
 }
 
-ArpiMotors::ArpiMotors(unsigned char M1DIR, unsigned char M1PWM, unsigned char M2DIR, unsigned char M2PWM)
+ArpiMotors::ArpiMotors(unsigned char M2DIR, unsigned char M2PWM, unsigned char M1DIR, unsigned char M1PWM)
 {
   _M1DIR = M1DIR;
   _M2DIR = M2DIR;
@@ -70,7 +70,7 @@ void ArpiMotors::setM2Speed(int speed)
 }
 
 // Set both motor speeds in PWM value [-255,255]
-void ArpiMotors::setSpeeds(int m1Speed, int m2Speed)
+void ArpiMotors::setSpeeds(int m2Speed, int m1Speed)
 {
   setM1Speed(m1Speed);
   setM2Speed(m2Speed);

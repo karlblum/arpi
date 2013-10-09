@@ -149,6 +149,7 @@ int runCommand() {
     break;
   case RESET_ENCODERS:
     resetEncoders();
+    resetPID();
     Serial.println("OK");
     break;
   case UPDATE_PID:
@@ -185,8 +186,8 @@ void setup() {
   
   myPIDL.SetMode(AUTOMATIC);
   myPIDR.SetMode(AUTOMATIC);
-  myPIDL.SetOutputLimits(-255,255);
-  myPIDR.SetOutputLimits(-255,255);
+  myPIDL.SetOutputLimits(0,255);
+  myPIDR.SetOutputLimits(0,255);
 }
 
 /* Enter the main loop.  Read and parse input from the serial port
@@ -240,9 +241,9 @@ void loop() {
         leftPID.SetpointTicks = 0.0;
         rightPID.SetpointTicks = 0.0;
     } else {
-      updatePID();
       nextPID += PID_INTERVAL;
     } 
+    updatePID();
   }
   
   // Check to see if we have exceeded the auto-stop interval

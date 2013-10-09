@@ -32,7 +32,6 @@ void resetPID(){
    rightPID.Encoder = 0;
    rightPID.PreviousEncoder = 0;
    rightPID.f = 1;
-   Serial.println("PID RESET");
 }
 
 
@@ -41,7 +40,9 @@ void updatePID() {
     rightPID.Encoder = readEncoder(1);
   
   if (!moving){
-    if (leftPID.PreviousInput != 0 || rightPID.PreviousInput != 0) resetPID();
+    if (leftPID.PreviousInput != 0 || rightPID.PreviousInput != 0){
+      resetPID();
+    }
     return;
   }
     leftPID.Input = leftPID.Encoder - leftPID.PreviousEncoder;
@@ -49,6 +50,7 @@ void updatePID() {
     leftPID.PreviousEncoder = leftPID.Encoder;
     leftPID.PreviousInput = leftPID.Input;
     
+    /*
     Serial.print("LEFT Setpoint: ");
     Serial.print(leftPID.SetpointTicks);
     Serial.print(" | Encoder: ");
@@ -57,12 +59,14 @@ void updatePID() {
     Serial.print(leftPID.Input);
     Serial.print(" | Output: ");
     Serial.println(leftPID.Output);    
+    */
     
     rightPID.Input = rightPID.Encoder - rightPID.PreviousEncoder;
     myPIDR.Compute();
     rightPID.PreviousEncoder = rightPID.Encoder;
     rightPID.PreviousInput = rightPID.Input;
     
+    /* DEBUG
     Serial.print("RIGHT Setpoint: ");
     Serial.print(rightPID.SetpointTicks);
     Serial.print(" | Encoder: ");
@@ -71,9 +75,10 @@ void updatePID() {
     Serial.print(rightPID.Input);
     Serial.print(" | Output: ");
     Serial.println(rightPID.Output);
+    */
    
   /* Set the motor speeds accordingly */
   
-  setMotorSpeeds(rightPID.Output * rightPID.f, leftPID.Output * leftPID.f);
+  setMotorSpeeds(leftPID.Output * leftPID.f, rightPID.Output * rightPID.f);
 }
 
