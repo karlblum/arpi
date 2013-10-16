@@ -40,7 +40,7 @@ void resetEncoders() {
 // Initialize both encoders
 void initEncoders()
 {
-  attachInterrupt(0, EncoderTickL, CHANGE);
-  attachInterrupt(1, EncoderTickR, CHANGE); 
+  attachInterrupt(2, EncoderTickL, CHANGE);
+  attachInterrupt(3, EncoderTickR, CHANGE); 
 }
 

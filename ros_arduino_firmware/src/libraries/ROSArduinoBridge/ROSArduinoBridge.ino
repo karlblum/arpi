@@ -1,30 +1,16 @@
-/* Serial port baud rate */
-#define BAUDRATE     57600
-
-/* Maximum PWM signal */
-#define MAX_PWM        255
-
 #include "Arduino.h"
-
-/* Include definition of serial commands */
 #include "commands.h"
-
-/* Sensor functions */
 #include "sensors.h"
-
-/* Include servo support */
 #include <Servo.h>
 #include "servos.h"
-
-/* Motor driver function definitions */
-#include "motor_driver.h"
-
-/* Encoder driver function definitions */
+#include <Wire.h>
+#include <BMP085.h>
+#include <motor_driver.h>
 #include "encoder_driver.h"
-
-/* PID controller parameters */
 #include <PID_v1.h>
 #include "diff_controller.h"
+
+#define BAUDRATE     57600 /* Serial port baud rate */
 
 /* Run the PID loop at 10 times per second */
 // MAX Ticks per second is about 30-50 with current encoders!!!!
@@ -41,17 +27,16 @@ unsigned long nextPID = PID_INTERVAL;
 #define AUTO_STOP_INTERVAL 2000
 long lastMotorCommand = AUTO_STOP_INTERVAL;
 
+/* Init pressure and temeprature sensor */
+BMP085 dps = BMP085();
+
 
 
 // A pair of varibles to help parse serial commands (thanks Fergs)
 int arg = 0;
 int index = 0;
-
-// Variable to hold an input character
-char chr;
-
-// Variable to hold the current single-character command
-char cmd;
+char chr; // Variable to hold an input character
+char cmd; // Variable to hold the current single-character command
 
 // Character arrays to hold the first and second arguments
 char argv1[16];

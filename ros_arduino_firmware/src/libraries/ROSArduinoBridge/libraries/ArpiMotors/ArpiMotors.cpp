@@ -75,5 +75,3 @@ void ArpiMotors::setSpeeds(int m2Speed, int m1Speed)
   setM1Speed(m1Speed);
   setM2Speed(m2Speed);
 }
-
-
