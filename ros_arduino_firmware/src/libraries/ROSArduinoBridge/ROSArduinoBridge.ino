@@ -4,22 +4,18 @@
 #include <Servo.h>
 #include "servos.h"
 #include <Wire.h>
-#include <BMP085.h>
-#include <motor_driver.h>
+#include "BMP085.h"
+#include "motor_driver.h"
 #include "encoder_driver.h"
 #include <PID_v1.h>
 #include "diff_controller.h"
 
 #define BAUDRATE     57600 /* Serial port baud rate */
 
-/* Run the PID loop at 10 times per second */
+/* PID loop parameters */
 // MAX Ticks per second is about 30-50 with current encoders!!!!
 #define PID_RATE           10.0     // Hz
-
-/* Convert the rate into an interval */
 const int PID_INTERVAL = 1000 / PID_RATE;
-
-/* Track the next time we make a PID calculation */
 unsigned long nextPID = PID_INTERVAL;
 
 /* Stop the robot if it hasn't received a movement command
@@ -27,10 +23,9 @@ unsigned long nextPID = PID_INTERVAL;
 #define AUTO_STOP_INTERVAL 2000
 long lastMotorCommand = AUTO_STOP_INTERVAL;
 
-/* Init pressure and temeprature sensor */
+/* Pressure sensor */
 BMP085 dps = BMP085();
-
-
+long Temperature = 0, Pressure = 0, Altitude = 0;
 
 // A pair of varibles to help parse serial commands (thanks Fergs)
 int arg = 0;
@@ -84,6 +79,16 @@ int runCommand() {
     if (arg2 == 0) digitalWrite(arg1, LOW);
     else if (arg2 == 1) digitalWrite(arg1, HIGH);
     Serial.println("OK"); 
+    break;
+  case ENVIR_DATA:
+    dps.getTemperature(&Temperature);
+    dps.getPressure(&Pressure);
+    dps.getAltitude(&Altitude);  
+    Serial.print(Temperature);
+    Serial.print(" ");
+    Serial.print(Pressure);
+    Serial.print(" ");
+    Serial.println(Altitude); 
     break;
   case PIN_MODE:
     if (arg2 == 0) pinMode(arg1, INPUT);
@@ -157,7 +162,9 @@ int runCommand() {
 
 void setup() {
   Serial.begin(BAUDRATE);
-
+  Wire.begin();
+  delay(1000);
+  
   initMotorController();
   initEncoders();
 
@@ -173,6 +180,9 @@ void setup() {
   myPIDR.SetMode(AUTOMATIC);
   myPIDL.SetOutputLimits(0,255);
   myPIDR.SetOutputLimits(0,255);
+  
+  //BMP085 Init
+  dps.init(); 
 }
 
 /* Enter the main loop.  Read and parse input from the serial port

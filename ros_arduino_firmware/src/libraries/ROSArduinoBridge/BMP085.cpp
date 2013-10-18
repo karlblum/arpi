@@ -28,8 +28,8 @@
 * NOTE: SCL and SDA needs pull-up resistors for each I2C bus.               *
 *  2.2kOhm..10kOhm, typ. 4.7kOhm                                            *
 *****************************************************************************/
-#include <Wire.h>
-#include <BMP085.h>
+#include "Wire.h"
+#include "BMP085.h"
 
 BMP085::BMP085() {
   _dev_address = BMP085_ADDR;

@@ -1,11 +1,9 @@
-/* Define single-letter commands that will be sent by the PC over the
-   serial link.
-*/
 #define ANALOG_READ    'a'
 #define GET_BAUDRATE   'b'
 #define PIN_MODE       'c'
 #define DIGITAL_READ   'd'
 #define READ_ENCODERS  'e'
+#define ENVIR_DATA     'h'
 #define MOTOR_SPEEDS   'm'
 #define PING           'p'
 #define RESET_ENCODERS 'r'
