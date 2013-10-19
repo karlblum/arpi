@@ -4,7 +4,10 @@
 #include <Servo.h>
 #include "servos.h"
 #include <Wire.h>
-#include "BMP085.h"
+#include "Adafruit_BMP085.h"
+#include "Adafruit_Sensor.h"
+#include "Adafruit_ADXL345.h"
+#include "L3G.h"
 #include "motor_driver.h"
 #include "encoder_driver.h"
 #include <PID_v1.h>
@@ -24,8 +27,14 @@ unsigned long nextPID = PID_INTERVAL;
 long lastMotorCommand = AUTO_STOP_INTERVAL;
 
 /* Pressure sensor */
-BMP085 dps = BMP085();
-long Temperature = 0, Pressure = 0, Altitude = 0;
+Adafruit_BMP085 bmp;
+
+/* Accelerometer */
+Adafruit_ADXL345 accel = Adafruit_ADXL345(12345);
+sensors_event_t event;
+
+/* Gyroscope */
+L3G gyro;
 
 // A pair of varibles to help parse serial commands (thanks Fergs)
 int arg = 0;
@@ -80,15 +89,34 @@ int runCommand() {
     else if (arg2 == 1) digitalWrite(arg1, HIGH);
     Serial.println("OK"); 
     break;
-  case ENVIR_DATA:
-    dps.getTemperature(&Temperature);
-    dps.getPressure(&Pressure);
-    dps.getAltitude(&Altitude);  
-    Serial.print(Temperature);
+  case ENVIR_DATA: 
+    Serial.print(bmp.readTemperature());
     Serial.print(" ");
-    Serial.print(Pressure);
+    Serial.print(bmp.readPressure());
     Serial.print(" ");
-    Serial.println(Altitude); 
+    Serial.println(bmp.readAltitude()); 
+    break;
+  case ACCELERATION:
+    Serial.print("X: "); 
+    Serial.print(event.acceleration.x); 
+    Serial.print("  ");
+    Serial.print("Y: "); 
+    Serial.print(event.acceleration.y); 
+    Serial.print("  ");
+    Serial.print("Z: "); 
+    Serial.print(event.acceleration.z); 
+    Serial.print("  ");
+    Serial.println("m/s^2 ");
+    break;
+  case GYROSCOPE:
+    gyro.read();
+    Serial.print("G ");
+    Serial.print("X: ");
+    Serial.print((int)gyro.g.x);
+    Serial.print(" Y: ");
+    Serial.print((int)gyro.g.y);
+    Serial.print(" Z: ");
+    Serial.println((int)gyro.g.z);
     break;
   case PIN_MODE:
     if (arg2 == 0) pinMode(arg1, INPUT);
@@ -114,22 +142,22 @@ int runCommand() {
     }
     else moving = 1;
     //Set target encoder ticks per frame
-     if(arg1<0) {
-       leftPID.f = -1;    
-     }
-     else { 
-       leftPID.f = 1;
-     }
-     leftPID.SetpointTicks = arg1/PID_RATE * leftPID.f;
-   
-     if(arg2<0) {
-       rightPID.f = -1;
-     }
-     else { 
-       rightPID.f = 1; 
-     }
-     rightPID.SetpointTicks = arg2/PID_RATE * rightPID.f;
-     
+    if(arg1<0) {
+      leftPID.f = -1;    
+    }
+    else { 
+      leftPID.f = 1;
+    }
+    leftPID.SetpointTicks = arg1/PID_RATE * leftPID.f;
+
+    if(arg2<0) {
+      rightPID.f = -1;
+    }
+    else { 
+      rightPID.f = 1; 
+    }
+    rightPID.SetpointTicks = arg2/PID_RATE * rightPID.f;
+
     Serial.println("OK"); 
     break;
   case READ_ENCODERS:
@@ -144,8 +172,8 @@ int runCommand() {
     break;
   case UPDATE_PID:
     while ((str = strtok_r(p, ":", &p)) != '\0') {
-       pid_args[i] = atoi(str);
-       i++;
+      pid_args[i] = atoi(str);
+      i++;
     }
     //Kp = pid_args[0];
     //Kd = pid_args[1];
@@ -163,8 +191,7 @@ int runCommand() {
 void setup() {
   Serial.begin(BAUDRATE);
   Wire.begin();
-  delay(1000);
-  
+
   initMotorController();
   initEncoders();
 
@@ -175,21 +202,46 @@ void setup() {
   }
   servos[0].write(0);
   servos[1].write(90);
-  
+
   myPIDL.SetMode(AUTOMATIC);
   myPIDR.SetMode(AUTOMATIC);
   myPIDL.SetOutputLimits(0,255);
   myPIDR.SetOutputLimits(0,255);
-  
-  //BMP085 Init
-  dps.init(); 
+
+  if (!bmp.begin()) {
+    Serial.println("Could not find a valid BMP085 sensor, check wiring!");
+    while (1) {
+    }
+  }
+
+  if(!accel.begin())
+  {
+    /* There was a problem detecting the ADXL345 ... check your connections */
+    Serial.println("Ooops, no ADXL345 detected ... Check your wiring!");
+    while(1);
+  }
+
+  if (!gyro.init())
+  {
+    Serial.println("Failed to autodetect gyro type!");
+    while (1);
+  }
+
+  gyro.enableDefault();
+
 }
+
+
 
 /* Enter the main loop.  Read and parse input from the serial port
  and run any valid commands. Run a PID calculation at the target
  interval and check for auto-stop conditions.
  */
 void loop() {
+
+  /* Accelerometer update*/
+  accel.getEvent(&event);
+
   while (Serial.available() > 0) {
 
     // Read the next character
@@ -229,23 +281,26 @@ void loop() {
       }
     }
   }
-  
+
   // Execute motor commands
   if (millis() > nextPID) {
     if (!moving){
-        leftPID.SetpointTicks = 0.0;
-        rightPID.SetpointTicks = 0.0;
-    } else {
+      leftPID.SetpointTicks = 0.0;
+      rightPID.SetpointTicks = 0.0;
+    } 
+    else {
       nextPID += PID_INTERVAL;
     } 
     updatePID();
   }
-  
+
   // Check to see if we have exceeded the auto-stop interval
-  if ((millis() - lastMotorCommand) > AUTO_STOP_INTERVAL) {;
+  if ((millis() - lastMotorCommand) > AUTO_STOP_INTERVAL) {
+    ;
     setMotorSpeeds(0, 0);
     moving = 0;
   }
 }
+
 
 
