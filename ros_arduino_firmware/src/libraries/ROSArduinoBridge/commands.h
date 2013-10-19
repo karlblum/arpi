@@ -5,6 +5,7 @@
 #define READ_ENCODERS  'e'
 #define ENVIR_DATA     'h'
 #define ACCELERATION   'g'
+#define IR             'i'
 #define GYROSCOPE      'y'
 #define MOTOR_SPEEDS   'm'
 #define PING           'p'

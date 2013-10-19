@@ -181,6 +181,9 @@ int runCommand() {
     //Ko = pid_args[3];
     Serial.println("OK");
     break;
+   case IR:
+     Serial.println("OK");
+     break;
   default:
     Serial.println("Invalid Command");
     break;
