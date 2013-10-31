@@ -12,8 +12,10 @@
 #include "encoder_driver.h"
 #include <PID_v1.h>
 #include "diff_controller.h"
+#include <SoftwareSerial.h>
 
-#define BAUDRATE     57600 /* Serial port baud rate */
+#define BAUDRATE     9600
+SoftwareSerial mySerial(9, 8);
 
 /* PID loop parameters */
 // MAX Ticks per second is about 30-50 with current encoders!!!!
@@ -72,66 +74,66 @@ int runCommand() {
 
   switch(cmd) {
   case GET_BAUDRATE:
-    Serial.println(BAUDRATE);
+    mySerial.println(BAUDRATE);
     break;
   case ANALOG_READ:
-    Serial.println(analogRead(arg1));
+    mySerial.println(analogRead(arg1));
     break;
   case DIGITAL_READ:
-    Serial.println(digitalRead(arg1));
+    mySerial.println(digitalRead(arg1));
     break;
   case ANALOG_WRITE:
     analogWrite(arg1, arg2);
-    Serial.println("OK"); 
+    mySerial.println("OK"); 
     break;
   case DIGITAL_WRITE:
     if (arg2 == 0) digitalWrite(arg1, LOW);
     else if (arg2 == 1) digitalWrite(arg1, HIGH);
-    Serial.println("OK"); 
+    mySerial.println("OK"); 
     break;
   case ENVIR_DATA: 
-    Serial.print(bmp.readTemperature());
-    Serial.print(" ");
-    Serial.print(bmp.readPressure());
-    Serial.print(" ");
-    Serial.println(bmp.readAltitude()); 
+    mySerial.print(bmp.readTemperature());
+    mySerial.print(" ");
+    mySerial.print(bmp.readPressure());
+    mySerial.print(" ");
+    mySerial.println(bmp.readAltitude()); 
     break;
   case ACCELERATION:
-    Serial.print("X: "); 
-    Serial.print(event.acceleration.x); 
-    Serial.print("  ");
-    Serial.print("Y: "); 
-    Serial.print(event.acceleration.y); 
-    Serial.print("  ");
-    Serial.print("Z: "); 
-    Serial.print(event.acceleration.z); 
-    Serial.print("  ");
-    Serial.println("m/s^2 ");
+    mySerial.print("X: "); 
+    mySerial.print(event.acceleration.x); 
+    mySerial.print("  ");
+    mySerial.print("Y: "); 
+    mySerial.print(event.acceleration.y); 
+    mySerial.print("  ");
+    mySerial.print("Z: "); 
+    mySerial.print(event.acceleration.z); 
+    mySerial.print("  ");
+    mySerial.println("m/s^2 ");
     break;
   case GYROSCOPE:
     gyro.read();
-    Serial.print("G ");
-    Serial.print("X: ");
-    Serial.print((int)gyro.g.x);
-    Serial.print(" Y: ");
-    Serial.print((int)gyro.g.y);
-    Serial.print(" Z: ");
-    Serial.println((int)gyro.g.z);
+    mySerial.print("G ");
+    mySerial.print("X: ");
+    mySerial.print((int)gyro.g.x);
+    mySerial.print(" Y: ");
+    mySerial.print((int)gyro.g.y);
+    mySerial.print(" Z: ");
+    mySerial.println((int)gyro.g.z);
     break;
   case PIN_MODE:
     if (arg2 == 0) pinMode(arg1, INPUT);
     else if (arg2 == 1) pinMode(arg1, OUTPUT);
-    Serial.println("OK");
+    mySerial.println("OK");
     break;
   case PING:
-    Serial.println(Ping(arg1));
+    mySerial.println(Ping(arg1));
     break;
   case SERVO_WRITE:
     servos[arg1].write(arg2);
-    Serial.println("OK");
+    mySerial.println("OK");
     break;
   case SERVO_READ:
-    Serial.println(servos[arg1].read());
+    mySerial.println(servos[arg1].read());
     break;
   case MOTOR_SPEEDS:
     /* Reset the auto stop timer */
@@ -158,17 +160,17 @@ int runCommand() {
     }
     rightPID.SetpointTicks = arg2/PID_RATE * rightPID.f;
 
-    Serial.println("OK"); 
+    mySerial.println("OK"); 
     break;
   case READ_ENCODERS:
-    Serial.print(readEncoder(LEFT));
-    Serial.print(" ");
-    Serial.println(readEncoder(RIGHT));
+    mySerial.print(readEncoder(LEFT));
+    mySerial.print(" ");
+    mySerial.println(readEncoder(RIGHT));
     break;
   case RESET_ENCODERS:
     resetEncoders();
     resetPID();
-    Serial.println("OK");
+    mySerial.println("OK");
     break;
   case UPDATE_PID:
     while ((str = strtok_r(p, ":", &p)) != '\0') {
@@ -179,20 +181,22 @@ int runCommand() {
     //Kd = pid_args[1];
     //Ki = pid_args[2];
     //Ko = pid_args[3];
-    Serial.println("OK");
+    mySerial.println("OK");
     break;
-   case IR:
-     Serial.println("OK");
-     break;
+  case IR:
+    mySerial.println("OK");
+    break;
   default:
-    Serial.println("Invalid Command");
+    mySerial.println("Invalid Command");
     break;
   }
 }
 
 
 void setup() {
-  Serial.begin(BAUDRATE);
+  pinMode(9, INPUT);
+  pinMode(8, OUTPUT);
+  mySerial.begin(BAUDRATE);
   Wire.begin();
 
   initMotorController();
@@ -211,27 +215,27 @@ void setup() {
   myPIDL.SetOutputLimits(0,255);
   myPIDR.SetOutputLimits(0,255);
 
+/*
   if (!bmp.begin()) {
-    Serial.println("Could not find a valid BMP085 sensor, check wiring!");
+    Serial1.println("Could not find a valid BMP085 sensor, check wiring!");
     while (1) {
     }
   }
 
   if(!accel.begin())
   {
-    /* There was a problem detecting the ADXL345 ... check your connections */
-    Serial.println("Ooops, no ADXL345 detected ... Check your wiring!");
+    Serial1.println("Ooops, no ADXL345 detected ... Check your wiring!");
     while(1);
   }
 
   if (!gyro.init())
   {
-    Serial.println("Failed to autodetect gyro type!");
+    Serial1.println("Failed to autodetect gyro type!");
     while (1);
   }
 
   gyro.enableDefault();
-
+*/
 }
 
 
@@ -245,10 +249,10 @@ void loop() {
   /* Accelerometer update*/
   accel.getEvent(&event);
 
-  while (Serial.available() > 0) {
+  while (mySerial.available() > 0) {
 
     // Read the next character
-    chr = Serial.read();
+    chr = mySerial.read();
 
     // Terminate a command with a CR
     if (chr == 13) {
@@ -304,6 +308,7 @@ void loop() {
     moving = 0;
   }
 }
+
 
 
 
