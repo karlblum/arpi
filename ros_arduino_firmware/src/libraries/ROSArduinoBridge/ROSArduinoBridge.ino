@@ -215,27 +215,27 @@ void setup() {
   myPIDL.SetOutputLimits(0,255);
   myPIDR.SetOutputLimits(0,255);
 
-/*
+  /*
   if (!bmp.begin()) {
-    Serial1.println("Could not find a valid BMP085 sensor, check wiring!");
-    while (1) {
-    }
-  }
-
-  if(!accel.begin())
-  {
-    Serial1.println("Ooops, no ADXL345 detected ... Check your wiring!");
-    while(1);
-  }
-
-  if (!gyro.init())
-  {
-    Serial1.println("Failed to autodetect gyro type!");
-    while (1);
-  }
-
-  gyro.enableDefault();
-*/
+   Serial1.println("Could not find a valid BMP085 sensor, check wiring!");
+   while (1) {
+   }
+   }
+   
+   if(!accel.begin())
+   {
+   Serial1.println("Ooops, no ADXL345 detected ... Check your wiring!");
+   while(1);
+   }
+   
+   if (!gyro.init())
+   {
+   Serial1.println("Failed to autodetect gyro type!");
+   while (1);
+   }
+   
+   gyro.enableDefault();
+   */
 }
 
 
@@ -291,23 +291,17 @@ void loop() {
 
   // Execute motor commands
   if (millis() > nextPID) {
-    if (!moving){
-      leftPID.SetpointTicks = 0.0;
-      rightPID.SetpointTicks = 0.0;
-    } 
-    else {
-      nextPID += PID_INTERVAL;
-    } 
+    nextPID += PID_INTERVAL;
     updatePID();
   }
 
   // Check to see if we have exceeded the auto-stop interval
   if ((millis() - lastMotorCommand) > AUTO_STOP_INTERVAL) {
-    ;
     setMotorSpeeds(0, 0);
     moving = 0;
   }
 }
+
 
 
 
