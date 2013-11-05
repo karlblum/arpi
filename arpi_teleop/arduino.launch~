@@ -1,5 +1,0 @@
-<launch>
-   <node name="teleop" pkg="arpi_teleop" type="teleop_node.py" output="screen">
-      <rosparam file="$(find ros_arduino_python)/config/my_arduino_params.yaml" command="load" />
-   </node>
-</launch>
