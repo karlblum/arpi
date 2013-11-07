@@ -185,7 +185,7 @@ class GP2D12(IRSensor):
         
         self.msg.field_of_view = 0.001
         self.msg.min_range = 0.10
-        self.msg.max_range = 0.80
+        self.msg.max_range = 4.00
         
     def read_value(self):
         value = self.controller.analog_read(self.pin)

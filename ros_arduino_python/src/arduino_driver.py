@@ -38,10 +38,10 @@ class Arduino:
     N_ANALOG_PORTS = 6
     N_DIGITAL_PORTS = 12
     
-    def __init__(self, port="/dev/ttyUSB0", baudrate=57600, timeout=0.5):
+    def __init__(self, port="/dev/ttyUSB0", baudrate=9600, timeout=0.5):
         
-        self.PID_RATE = 30 # Do not change this!  It is a fixed property of the Arduino PID controller.
-        self.PID_INTERVAL = 1000 / 30
+        self.PID_RATE = 10
+        self.PID_INTERVAL = 1000 / 10
         
         self.port = port
         self.baudrate = baudrate
@@ -344,11 +344,7 @@ class Arduino:
 
 """ Basic test for connectivity """
 if __name__ == "__main__":
-    if os.name == "posix":
-        portName = "/dev/ttyACM0"
-    else:
-        portName = "COM43" # Windows style COM port.
-        
+    portName = "/dev/ttyUSB0"       
     baudRate = 57600
 
     myArduino = Arduino(port=portName, baudrate=baudRate, timeout=0.5)
@@ -363,7 +359,7 @@ if __name__ == "__main__":
     for i in range(3):
         myArduino.digital_write(13, 1)
         time.sleep(1.0)
-    #print "Current encoder counts", myArduino.encoders()
+    print "Current encoder counts", myArduino.encoders()
     
     print "Connection test successful.",
     

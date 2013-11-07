@@ -122,8 +122,6 @@ class ArduinoROS():
             self.mySensors.append(sensor)
             rospy.loginfo(name + " " + str(params))
               
-        # Initialize the base controller if used
-        if self.use_base_controller:
             self.myBaseController = BaseController(self.controller)
     
         # Start polling the sensors and base controller
