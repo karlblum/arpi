@@ -1,3 +1,7 @@
+int Kp = 4;
+int Ki = 100;
+int Kd = 1;
+
 typedef struct {
   double SetpointTicks;
   double Input;  
@@ -11,8 +15,8 @@ PidInfo;
 
 PidInfo leftPID, rightPID;
 
-PID myPIDL(&leftPID.Input, &leftPID.Output, &leftPID.SetpointTicks,4,100,1, DIRECT);
-PID myPIDR(&rightPID.Input, &rightPID.Output, &rightPID.SetpointTicks,4,100,1, DIRECT);
+PID myPIDL(&leftPID.Input, &leftPID.Output, &leftPID.SetpointTicks,Kp,Ki,Kd, DIRECT);
+PID myPIDR(&rightPID.Input, &rightPID.Output, &rightPID.SetpointTicks,Kp,Ki,Kd, DIRECT);
 
 unsigned char moving = 0; // is the base in motion?
 
