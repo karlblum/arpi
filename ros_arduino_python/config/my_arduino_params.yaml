@@ -24,7 +24,6 @@ motors_reversed: True
 Kp: 10
 Kd: 12
 Ki: 0
-Ko: 50
 accel_limit: 1.0
 
 # === Sensor definitions.  Examples only - edit for your robot.

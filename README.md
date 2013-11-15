@@ -30,6 +30,9 @@ ROS packages for Arduino serial interface
 	$ cd ~/ros_workspace/ros_arpi/
 	$ catkin_make
 	$ echo "source ~/ros_workspace/ros_arpi/devel/setup.bash" >> ~/.bashrc
+
+Make sure all node files have executable permission
+	$ chmod +x node.py
   
 Running the whole stack:
 

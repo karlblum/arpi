@@ -10,14 +10,14 @@ import roslib; roslib.load_manifest('arpi_teleop')
 #  called "cmd_vel" using a message type "geometry_msgs/Twist"
 from geometry_msgs.msg import Twist
 
-x_speed = 0.1  # 0.1 m/s
+x_speed = 10  # 0.1 m/s
 
 # this quick check means that the following code runs ONLY if this is the 
 # main file -- if we "import move" in another file, this code will not execute.
 if __name__=="__main__":
 
     # first thing, init a node!
-    rospy.init_node('move')
+    rospy.init_node('teleop')
 
     # publish to cmd_vel
     p = rospy.Publisher('cmd_vel', Twist)
