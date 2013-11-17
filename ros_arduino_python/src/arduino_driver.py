@@ -41,7 +41,7 @@ class Arduino:
     def __init__(self, port="/dev/ttyUSB0", baudrate=9600, timeout=0.5):
         
         self.PID_RATE = 10
-        self.PID_INTERVAL = 1000 / 10
+        self.PID_INTERVAL = 1000 / self.PID_RATE
         
         self.port = port
         self.baudrate = baudrate
@@ -248,11 +248,11 @@ class Arduino:
         self.mutex.release()
         return ack == 'OK'   
     
-    def update_pid(self, Kp, Kd, Ki, Ko):
+    def update_pid(self, Kp, Ki, Kd):
         ''' Set the PID parameters on the Arduino
         '''
         print "Updating PID parameters"
-        cmd = 'u ' + str(Kp) + ':' + str(Kd) + ':' + str(Ki) + ':' + str(Ko)
+        cmd = 'u ' + str(Kp) + ':' + str(Ki) + ':' + str(Kd)
         self.execute_ack(cmd)                          
 
     def get_baud(self):

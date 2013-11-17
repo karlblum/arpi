@@ -33,7 +33,7 @@ class BaseController:
     def __init__(self, arduino):
         self.arduino = arduino
         self.rate = float(rospy.get_param("~base_controller_rate", 10))
-        self.timeout = rospy.get_param('~base_controller_timeout', 1.0)
+        self.timeout = rospy.get_param('~timeout', 1.0)
         self.stopped = False
                  
         pid_params = dict()
@@ -41,10 +41,10 @@ class BaseController:
         pid_params['wheel_track'] = rospy.get_param("~wheel_track", "")
         pid_params['encoder_resolution'] = rospy.get_param("~encoder_resolution", "") 
         pid_params['gear_reduction'] = rospy.get_param("~gear_reduction", 1.0)
-        pid_params['Kp'] = rospy.get_param("~Kp", 20)
-        pid_params['Kd'] = rospy.get_param("~Kd", 12)
-        pid_params['Ki'] = rospy.get_param("~Ki", 0)
-        pid_params['Ko'] = rospy.get_param("~Ko", 50)
+        pid_params['Kp'] = rospy.get_param("~Kp", 4)
+	pid_params['Ki'] = rospy.get_param("~Ki", 100)
+        pid_params['Kd'] = rospy.get_param("~Kd", 1)
+        
         
         self.accel_limit = rospy.get_param('~accel_limit', 0.1)
         self.motors_reversed = rospy.get_param("~motors_reversed", False)
@@ -79,7 +79,7 @@ class BaseController:
         self.last_cmd_vel = now
 
         # subscriptions
-        rospy.Subscriber("cmd_vel", Twist, self.cmdVelCallback)
+        rospy.Subscriber("cmd_vel_mux/input/teleop", Twist, self.cmdVelCallback)
         
         # Clear any old odometry info
         self.arduino.reset_encoders()
@@ -108,11 +108,10 @@ class BaseController:
         self.gear_reduction = pid_params['gear_reduction']
         
         self.Kp = pid_params['Kp']
-        self.Kd = pid_params['Kd']
         self.Ki = pid_params['Ki']
-        self.Ko = pid_params['Ko']
+        self.Kd = pid_params['Kd']
         
-        self.arduino.update_pid(self.Kp, self.Kd, self.Ki, self.Ko)
+        self.arduino.update_pid(self.Kp, self.Ki, self.Kd)
 
     def poll(self):
         now = rospy.Time.now()
