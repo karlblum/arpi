@@ -22,6 +22,7 @@
 """
 
 import thread
+import logging
 from math import pi as PI, degrees, radians
 import os
 import time
@@ -38,7 +39,7 @@ class Arduino:
     N_ANALOG_PORTS = 6
     N_DIGITAL_PORTS = 12
     
-    def __init__(self, port="/dev/ttyUSB0", baudrate=9600, timeout=0.5):
+    def __init__(self, port="/dev/ttyUSB0", baudrate=9600, timeout=0.5, debug=None):
         
         self.PID_RATE = 10
         self.PID_INTERVAL = 1000 / self.PID_RATE
@@ -49,6 +50,9 @@ class Arduino:
         self.encoder_count = 0
         self.writeTimeout = timeout
         self.interCharTimeout = timeout / 30.
+	self.debug = logging.debug
+	if debug:                                                                    
+            self.debug = debug
     
         # Keep things thread safe
         self.mutex = thread.allocate_lock()
@@ -61,6 +65,7 @@ class Arduino:
     
     def connect(self):
         try:
+            self.debug("Connecting to Arduino from driver")
             print "Connecting to Arduino on port", self.port, "..."
             self.port = Serial(port=self.port, baudrate=self.baudrate, timeout=self.timeout, writeTimeout=self.writeTimeout)
             # The next line is necessary to give the firmware time to wake up.
@@ -159,6 +164,7 @@ class Arduino:
         attempts = 0
         
         try:
+	    self.debug("CMD: %s", cmd)
             self.port.write(cmd + '\r')
             value = self.recv(self.timeout)
             while attempts < ntries and (value == '' or value == 'Invalid Command' or value == None):
@@ -191,6 +197,7 @@ class Arduino:
         attempts = 0
         
         try:
+	    self.debug("CMD: %s", cmd)
             self.port.write(cmd + '\r')
             values = self.recv_array()
             while attempts < ntries and (values == '' or values == 'Invalid Command' or values == [] or values == None):
@@ -229,6 +236,7 @@ class Arduino:
         attempts = 0
         
         try:
+	    self.debug("CMD: %s", cmd)
             self.port.write(cmd + '\r')
             ack = self.recv(self.timeout)
             while attempts < ntries and (ack == '' or ack == 'Invalid Command' or ack == None):

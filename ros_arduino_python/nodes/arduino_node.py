@@ -78,7 +78,7 @@ class ArduinoROS():
         rospy.Service('~digital_write', DigitalWrite, self.DigitalWriteHandler)
 
         # Initialize the controlller
-        self.controller = Arduino(self.port, self.baud, self.timeout)
+        self.controller = Arduino(self.port, self.baud, self.timeout, rospy.loginfo)
         
         # Make the connection
         self.controller.connect()
