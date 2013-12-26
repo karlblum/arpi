@@ -194,6 +194,7 @@ int runCommand() {
 
 void setup() {
   Serial1.begin(BAUDRATE);
+  Serial.begin(BAUDRATE);
   Wire.begin();
 
   initMotorController();
@@ -245,7 +246,9 @@ void loop() {
 
   /* Accelerometer update*/
   //accel.getEvent(&event);
-
+  unsigned long time;
+  time = millis();
+  Serial.println(time);
   while (Serial1.available() > 0) {
 
     // Read the next character

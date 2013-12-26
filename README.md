@@ -42,3 +42,7 @@ Running the whole stack:
 	$ mkdir -p ~/ros_workspace/ros_project/
 	$ cd ~/ros_workspace/ros_project
 	$ catkin_init_workspace
+
+	
+##Todo
+	ROS ei saa vahest päringutele vastuseid kätte ja hangub. Arduino FW loop jookseb edasi aga ROS ei anna ka timeouti millegipärast.

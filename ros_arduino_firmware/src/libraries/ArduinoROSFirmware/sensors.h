@@ -17,14 +17,14 @@ long Ping(int pin) {
   digitalWrite(pin, LOW);
   delayMicroseconds(2);
   digitalWrite(pin, HIGH);
-  delayMicroseconds(5);
+  delayMicroseconds(10);
   digitalWrite(pin, LOW);
 
   // The same pin is used to read the signal from the PING))): a HIGH
   // pulse whose duration is the time (in microseconds) from the sending
   // of the ping to the reception of its echo off of an object.
   pinMode(pin, INPUT);
-  duration = pulseIn(pin, HIGH);
+  duration = pulseIn(pin, HIGH, 23200); //Lets set timeout to 4m sound travel time
 
   // convert the time into meters
   range = microsecondsToCm(duration);
