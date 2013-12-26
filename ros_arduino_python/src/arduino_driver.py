@@ -167,6 +167,7 @@ class Arduino:
 	    self.debug("CMD: %s", cmd)
             self.port.write(cmd + '\r')
             value = self.recv(self.timeout)
+	    self.debug("Received: %s", value)
             while attempts < ntries and (value == '' or value == 'Invalid Command' or value == None):
                 try:
                     self.port.flushInput()
@@ -200,6 +201,7 @@ class Arduino:
 	    self.debug("CMD: %s", cmd)
             self.port.write(cmd + '\r')
             values = self.recv_array()
+	    self.debug("Received: %s", value)
             while attempts < ntries and (values == '' or values == 'Invalid Command' or values == [] or values == None):
                 try:
                     self.port.flushInput()
@@ -239,6 +241,7 @@ class Arduino:
 	    self.debug("CMD: %s", cmd)
             self.port.write(cmd + '\r')
             ack = self.recv(self.timeout)
+	    self.debug("Received: %s", ack)
             while attempts < ntries and (ack == '' or ack == 'Invalid Command' or ack == None):
                 try:
                     self.port.flushInput()

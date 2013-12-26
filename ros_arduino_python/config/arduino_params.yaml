@@ -42,7 +42,9 @@ accel_limit: 1.0
 sensors: {
   #motor_current_left:   {pin: 0, type: PololuMotorCurrent, rate: 5},
   #motor_current_right:  {pin: 1, type: PololuMotorCurrent, rate: 5},
-  ir_front_center:      {pin: 0, type: GP2D12, rate: 10},
-  #sonar_front_center:   {pin: 5, type: Ping, rate: 10},
+  ir_front:      {pin: 0, type: GP2D12, rate: 10},
+  sonar_left:   {pin: 9, type: Ping, rate: 10},
+  sonar_right:  {pin: 8, type: Ping, rate: 10},
+  sonar_front:  {pin: 12, type: Ping, rate: 10},
   arduino_led:          {pin: 13, type: Digital, rate: 5, direction: output}
 }
