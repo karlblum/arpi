@@ -13,7 +13,7 @@
 #include <PID_v1.h>
 #include "diff_controller.h"
 
-#define BAUDRATE     9600
+#define BAUDRATE     57600
 
 /* PID loop parameters */
 // MAX Ticks per second is about 30-50 with current encoders!!!!
