@@ -3,10 +3,12 @@
 ArpiMotors drive;
 boolean moving = false;
 boolean turning = false;
-int pingInterval = 500;
+int pingInterval = 100;
 long nextPing = 0;
 int ping;
 int range = 0;
+int rangeL = 0;
+int rangeR = 0;
 
 void setup() {
   drive.init();
@@ -18,22 +20,31 @@ void loop() {
   time = millis();
 
   if (time > nextPing) {
-    range = Ping(10);
-    Serial.println(range);
+    rangeL = PingAVG(9);
+    rangeR = PingAVG(8);
+    Serial.print("RL: ");
+    Serial.print(rangeL);
+    Serial.print(" - RR: ");
+    Serial.println(rangeR);
+
+    if (rangeR == 0 && rangeL == 0) {
+      range = 32000;
+    } else {
+      range = min(rangeL, rangeR);
+    }
+
     nextPing = time + pingInterval;
   }
 
-  if (range > 30 && !moving) {
+  if (range > 10 && !moving) {
     drive.stop();
-    delayMicroseconds(1000);
     drive.mvForward();
     moving = true;
     turning = false;
     Serial.println("Started moving");
-  } else if (range <= 30 && !turning) {
+  } else if (range <= 10 && !turning) {
     drive.stop();
-    delayMicroseconds(1000);
-    drive.mvLeft();
+    drive.mvRight();
     moving = false;
     turning = true;
     Serial.println("Started turning");
@@ -42,23 +53,32 @@ void loop() {
 }
 
 long Ping(int pin) {
-  long duration, range;
+  long duration, range, r;
 
-  // The PING))) is triggered by a HIGH pulse of 2 or more microseconds.
-  // Give a short LOW pulse beforehand to ensure a clean HIGH pulse:
   pinMode(pin, OUTPUT);
   digitalWrite(pin, LOW);
   delayMicroseconds(2);
   digitalWrite(pin, HIGH);
   delayMicroseconds(10);
   digitalWrite(pin, LOW);
-  // The same pin is used to read the signal from the PING))): a HIGH
-  // pulse whose duration is the time (in microseconds) from the sending
-  // of the ping to the reception of its echo off of an object.
   pinMode(pin, INPUT);
-  duration = pulseIn(pin, HIGH, 23200); //Lets set timeout to 4m sound travel time
-  // convert the time into meters
-  range = duration / 58;
+  duration = pulseIn(pin, HIGH, 6000); // Timeout in microseconds, sound travel time = 340m/s ==> 1cm/29,4 microseconds
+  
+  if (duration == 0) {
+    r = 100000;
+  } else {
+    r = duration;
+  }
+  range = r / 58;
 
   return (range);
+}
+
+long PingAVG(int pin) {
+  long r1, r2, r3, range;
+  r1 = Ping(pin);
+  r2 = Ping(pin);
+  r3 = Ping(pin);
+  range = (r1 + r2 + r3) / 3;
+  return range;
 }

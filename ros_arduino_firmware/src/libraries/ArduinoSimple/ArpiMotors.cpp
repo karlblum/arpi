@@ -1,6 +1,6 @@
 #include "ArpiMotors.h"
 
-#define mvspeed 100
+#define mvspeed 130
 
 ArpiMotors::ArpiMotors()
 {
